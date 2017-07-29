@@ -7,26 +7,24 @@ $response = array("error" => FALSE);
 // json response array 
 if (isset($_GET['employee_id']) && isset($_GET['requestee_id'])) {
  
-    // receiving the post params
+    // receiving the params
     $employee_id= $_GET['employee_id'];
     $requestee_id = $_GET['requestee_id'];
 
     $result = $db->undoSentRequest($employee_id, $requestee_id);
     //print_r($result);
-
-    //print_r($result);
+ 
     if($result){
 
-            $response["response"] = TRUE;
-        
-    echo json_encode($response);
+       $response["response"] = TRUE; 
+       echo json_encode($response);
     }
     else{
         $response["error"] = TRUE;
             $response["error_msg"] = "Could not undo the request";
             echo json_encode($response);
     }
-    }
+  }
 
     else{
         $response["error"] = TRUE;
