@@ -18,7 +18,6 @@ if (isset($_GET['acceptor_id']) && isset($_GET['sender_id'])) {
         if ($db->updateStatus($acceptor_id, $sender_id, 1)) {
         // user already existed
         $response["response"] = TRUE;
-        
         echo json_encode($response);
     } 
 
@@ -33,7 +32,6 @@ if (isset($_GET['acceptor_id']) && isset($_GET['sender_id'])) {
         if ($db->updateStatus($sender_id, $acceptor_id, 1)) {
         // user already existed
         $response["response"] = TRUE;
-        
         echo json_encode($response);
     } 
 
