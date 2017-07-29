@@ -12,7 +12,6 @@ if (isset($_POST['employee_id']) && isset($_POST['password'])) {
     $employee_id= $_POST['employee_id'];
     $password = $_POST['password'];
 
- 
     // check if user is already existed with the same email
     if ($db->isUserExisted($employee_id)) {
         // user already existed
@@ -27,7 +26,7 @@ if (isset($_POST['employee_id']) && isset($_POST['password'])) {
    //              $response["error_msg"] = "Invalid email- " . $email;
    //              echo json_encode($response);
 
-   // } //till here
+   // }
 
     // else if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
         
