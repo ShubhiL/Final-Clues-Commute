@@ -8,14 +8,11 @@ $response = array("error" => FALSE);
  
 if (isset($_GET['employee_id']) && isset($_GET['access_as'])) {
  
-    // receiving the post params
+    // receiving the params
     $employee_id= $_GET['employee_id'];
     $access_as = $_GET['access_as'];
-
  
-    // check if user is already existed with the same email
     if ($db->updateAccess($employee_id, $access_as)) {
-        // user already existed
         $str = "User's Access Successfully Updated as ";
         if ($access_as==1)
             $str .="Driver";
@@ -23,7 +20,6 @@ if (isset($_GET['employee_id']) && isset($_GET['access_as'])) {
             $str .="Passenger";
 
         $response["response"] = $str;
-        
         echo json_encode($response);
     } 
 
