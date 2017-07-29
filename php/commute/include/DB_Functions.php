@@ -13,8 +13,7 @@ class DB_Functions {
     }
  
     // destructor
-    function __destruct() {
-         
+    function __destruct() {    
     }
  
     /**
@@ -27,29 +26,23 @@ class DB_Functions {
         $encrypted_password = $hash["encrypted"]; // encrypted password
         $salt = $hash["salt"]; // salt
 
+     //Fetching employee's details from MAIN table
         $stmt1 = $this->conn->prepare("SELECT * FROM main WHERE employee_id = ?");
         $stmt1->bind_param("s", $employee_id);
  
         if ($stmt1->execute()) {
             $data_main = $stmt1->get_result()->fetch_assoc();
-            $stmt1->close();
-            //print_r($data_main);
-            
+            $stmt1->close();            
         }
 
         else
             echo "NO ENTRY FOUND";
  
+     //Insert into USERS table
         $stmt = $this->conn->prepare("INSERT INTO users (unique_id, employee_id, email, encrypted_password, salt, created_at, updated_at, employee_name, address, gender, designation, zone_id, mobile_number, owns_vehicle, number_of_seats, vehicle_number, latitude, longitude) VALUES (?, ?, ?, ?, ?, NOW(), NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?)");
-
         $stmt->bind_param("sssssssssisiisdd", $uuid, $employee_id, $data_main['email'], $encrypted_password, $salt, $data_main['employee_name'], $data_main['address'], $data_main['gender'], $data_main['designation'], $data_main['zone_id'], $data_main['mobile_number'], $data_main['owns_vehicle'], $data_main['number_of_seats'], $data_main['vehicle_number'], $data_main['latitude'], $data_main['longitude']);
-
         $result = $stmt->execute();
         $stmt->close();
-
-        /**
-[employee_id] => C225 [employee_name] => Ranya Nigam [gender] => Female [designation] => Assistant Manager [email] => ranya.nigam@shopclues.com [mobile_number] => 9711038099 [address] => Near Sarai Khawaja, Faridabad 121003 [number_of_seats] => 4 [vehicle_number] => HR 12 3562 [latitude] => 28.4999 [longitude] => 77.3021 [zone_id] => 1 [owns_vehicle] => 1 )
-        */
  
         // check for successful store
         if ($result) {
@@ -60,18 +53,18 @@ class DB_Functions {
             $stmt->close();
  
             return $user;
-        } else {
-            return false;
+        } 
+        else {
+             return false;
         }
     }
  
     /**
-     * Get user by email and password
+     * Get user by employee id and password (Used for login)
      */
     public function getUserByEmployeeIdAndPassword($employee_id, $password) {
  
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE employee_id = ?");
- 
         $stmt->bind_param("s", $employee_id);
  
         if ($stmt->execute()) {
@@ -94,15 +87,12 @@ class DB_Functions {
     }
  
     /**
-     * Check user is existed or not
+     * Check user is existed or not (Used in Registration)
      */
     public function isUserExisted($employee_id) {
         $stmt = $this->conn->prepare("SELECT email from users WHERE employee_id = ?");
- 
         $stmt->bind_param("s", $employee_id);
- 
         $stmt->execute();
- 
         $stmt->store_result();
  
         if ($stmt->num_rows > 0) {
@@ -138,31 +128,26 @@ class DB_Functions {
     public function checkhashSSHA($salt, $password) {
  
         $hash = base64_encode(sha1($password . $salt, true) . $salt);
- 
         return $hash;
     }
 
     // Verifying employee 
-    
     public function isEmployeeVerified($employee_id, $email, $unique_id, $created_at, $updated_at = NULL){
 
         if ($updated_at!=NULL){
 
         $stmt = $this->conn->prepare("SELECT * from users WHERE email = ? AND employee_id = ? AND unique_id = ? AND created_at = ? AND updated_at = ? AND active='0'");
- 
         $stmt->bind_param("sssss", $email, $employee_id, $unique_id, $created_at, $updated_at);
     }
     else{
 
         $stmt = $this->conn->prepare("SELECT * from users WHERE email = ? AND employee_id = ? AND unique_id = ? AND created_at = ? AND active='0'");
- 
         $stmt->bind_param("ssss", $email, $employee_id, $unique_id, $created_at);
-
     }
  
     $stmt->execute();
     $stmt->store_result();
- 
+
     if ($stmt->num_rows > 0) {
             
         // user existed 
@@ -178,11 +163,9 @@ class DB_Functions {
             $stmt->close();
             return false;
         }
-  
     }
 
     //Fetching data of user
-
     public function dataFetch($email) {
         $stmt = $this->conn->prepare("SELECT * FROM users where email = ?");
         $stmt->bind_param("s", $email);
@@ -198,7 +181,6 @@ class DB_Functions {
     }
 
     //Fetching Drivers in same zone
-
     public function getSameZoneDrivers($employee_id){ 
         
         $stmt = $this->conn->prepare("SELECT zone_id FROM users where employee_id = ?");
@@ -216,15 +198,12 @@ class DB_Functions {
                 //print_r($data);                         
                 $stmt->close();
                 return $data;
-        }
-                       
+        }              
         else
             return false;
-        
     }   
 
     //Fetching people in same zone
-
     public function getSameZonePeople($employee_id){ 
 
         $stmt = $this->conn->prepare("SELECT zone_id FROM users where employee_id = ?");
@@ -245,9 +224,7 @@ class DB_Functions {
                        
         else
             return false;
-        
-    }  
-                              // CHANGES MADE BELOW
+    }
                               
     public function storeRequest($driver_id, $passenger_id, $sent_by){
 
@@ -263,9 +240,11 @@ class DB_Functions {
             $stmt->execute();
             $request_row = $stmt->get_result()->fetch_assoc();
             $stmt->close();
-            if($request_row){return true;}
-            else{return false;}
-            
+            if($request_row){
+             return true;
+            }else{
+             return false;
+            }
         } else {
             return false;
         }
@@ -291,22 +270,20 @@ class DB_Functions {
     public function getAllReceivedRequest($employee_id) {
 
         $stmt = $this->conn->prepare("SELECT driver_id , passenger_id FROM request WHERE (driver_id = ? OR passenger_id = ?) AND (sent_by != ?) AND status = 0 ");
-        //AND 
         $stmt->bind_param("sss", $employee_id, $employee_id, $employee_id);
  
         if ($stmt->execute()) {
 
                 $received_rows = $stmt->get_result()->fetch_all();
-                //print_r($data);                         
                 $stmt->close();
         }
+     
+     //This also tells the index that we need 
         if($received_rows){
             if ($received_rows[0][0]== $employee_id)
             $is_driver = true;
         else 
             $is_driver = false;
-
-        //This also tells the index that I need 
 
         $size = count($received_rows);
         $a=array();
@@ -315,15 +292,11 @@ class DB_Functions {
 
             $this->fetchFromMain($received_rows[$i][$is_driver]);
             array_push($a,$this->fetchFromMain($received_rows[$i][$is_driver]));
-
         }
-
         return $a;
-        }               
-        else{
+       } else{
             return false;
-        }
-        
+       }  
     }
     
     public function getCurrentRideData($driver_id,$route_id)
@@ -342,10 +315,7 @@ class DB_Functions {
         else
             return false;
     }
-
-
     
-
     public function fetchFromMain($employee_id){
 
         $stmt1 = $this->conn->prepare("SELECT * FROM main WHERE employee_id = ?");
@@ -423,41 +393,29 @@ class DB_Functions {
             //show driver details
             $is_driver = false;
 
-        //This also tells the index that I need 
-
-        //echo $is_driver;
-
         $size = count($sent_rows);
         $a=array();
 
         for ($i= 0; $i<$size; $i++){
-
             $this->fetchFromMain($sent_rows[$i][$is_driver]);
             array_push($a,$this->fetchFromMain($sent_rows[$i][$is_driver]));
-
         }
 
         return $a; 
-        }
+       }
         else return null;
-
     }
 
     public function storeInRouteTable($driver_id, $string_route, $d_latitude, $d_longitude)
     {
         //CHECKING IF ENTRY ALREADY EXISTS
-
         $stmt = $this->conn->prepare("SELECT * from route WHERE driver_id = ?");
- 
         $stmt->bind_param("s", $driver_id);
- 
         $stmt->execute();
- 
         $stmt->store_result();
  
         if ($stmt->num_rows > 0) {
             // user existed 
-
             $stmt = $this->conn->prepare("UPDATE route SET route = ? WHERE driver_id = ?");
             $stmt->bind_param("ss", $string_route, $driver_id);
 
@@ -466,8 +424,6 @@ class DB_Functions {
             $stmt = $this->conn->prepare("INSERT INTO route (driver_id, route, current_latitude, current_longitude, d_latitude, d_longitude) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("ssdddd", $driver_id, $string_route, $d_latitude, $d_longitude, $d_latitude, $d_longitude);
         }
-
-        
 
         $result = $stmt->execute();
         $stmt->close();
@@ -486,52 +442,44 @@ class DB_Functions {
         $stmt->bind_param("s", $driver_id);
 
         if($stmt->execute()){
-
             $routeFetched = $stmt->get_result()->fetch_assoc();
-            //
             $stmt->close();
-    }
-
-    if($routeFetched){
-        $flag = 0;
-    $passenger_list = explode(",", $routeFetched['route']);
-    //print_r($passenger_list);
-
-    for($i = 0; $i<count($passenger_list); $i++){
-
-        //print_r($passenger_list[$i]);
-
-        $stmt1 = $this->conn->prepare("SELECT status FROM request WHERE passenger_id = ?");
-        $stmt1->bind_param("s", $passenger_list[$i]);
-
-        if($stmt1->execute()){
-
-            $status = $stmt1->get_result()->fetch_assoc();
-            //print_r($status);
-            //print_r($status['status']);
-
-            $stmt1->close();
-
-            if($status['status']==1 || $passenger_list[$i]=='shopclues'){
-                $flag = 1;
-                //print_r($passenger_list);
-                return $passenger_list[$i];
             }
-                
-        }
-    else 
-        return false;
 
-    }
-    if ($flag == 0){
-        return false;
-    }
-    }
-    
-    else{
-        return false;
-    }
-    }
+        if($routeFetched){
+           $flag = 0;
+           $passenger_list = explode(",", $routeFetched['route']);
+           //print_r($passenger_list);
+
+           for($i = 0; $i<count($passenger_list); $i++){
+            //print_r($passenger_list[$i]);
+            $stmt1 = $this->conn->prepare("SELECT status FROM request WHERE passenger_id = ?");
+            $stmt1->bind_param("s", $passenger_list[$i]);
+
+            if($stmt1->execute()){
+                $status = $stmt1->get_result()->fetch_assoc();
+                //print_r($status);
+                //print_r($status['status']);
+                $stmt1->close();
+             
+                if($status['status']==1 || $passenger_list[$i]=='shopclues'){
+                    $flag = 1;
+                    //print_r($passenger_list);
+                    return $passenger_list[$i];
+                }
+            }
+        else 
+            return false;
+        }
+        if ($flag == 0){
+            return false;
+        }
+        }
+
+        else{
+            return false;
+        }
+      }
 
 
     public function acceptRequest($driver_id,$passenger_id) {
@@ -548,6 +496,7 @@ class DB_Functions {
              return false;
     
     }
+ 
     public function cancelRequest($sender_id,$receiver_id) {
     
     $stmt = $this->conn->prepare("UPDATE request SET status = -1 WHERE driver_id = ? AND passenger_id = ?");
@@ -562,7 +511,6 @@ class DB_Functions {
          return false;
     
     }
-
 
     public function undoSentRequest($employee_id, $requestee_id)
     {
@@ -661,27 +609,21 @@ class DB_Functions {
             elseif ($current_status == 0) {
                 
                 //ACCEPTING OR REJECTING A REQUEST
-
                 $stmt = $this->conn->prepare("UPDATE request SET status = ? WHERE driver_id = ? AND passenger_id = ? AND status = 0 ");
                 $stmt->bind_param("dss", $new_status, $driver_id, $passenger_id);
                 if ($stmt->execute()) 
                 {
                     if($new_status == 1){
 
-                        //echo "\nENTERING IF new_status=1\n";
                         $stmt1 = $this->conn->prepare("UPDATE users SET visibility_as_passenger = 0 WHERE employee_id = ? ");
                         $stmt1->bind_param("s", $passenger_id);
                         $stmt1->execute();
                         $stmt1->close();
 
-                        //echo "\nthis ran (pass =0)\n";
-
                         $stmt2 = $this->conn->prepare("UPDATE users SET number_of_seats = number_of_seats - 1 WHERE employee_id = ? AND number_of_seats > 0");
                         $stmt2->bind_param("s", $driver_id);
                         $stmt2->execute();
                         $stmt2->close();
-
-                        //echo "\nthis ran (minus numbr of seats_status)\n";
 
                         $stmt3 = $this->conn->prepare("SELECT * FROM users WHERE employee_id = ?");
                         $stmt3->bind_param("s", $driver_id);
@@ -706,36 +648,28 @@ class DB_Functions {
                         //     return flase;
                         // }
 
-                        
-
                         if($result['number_of_seats'] == 0){
                             $stmt4 = $this->conn->prepare("UPDATE users SET visibility_as_driver = 0 WHERE employee_id = ? AND number_of_seats = 0");
                         $stmt4->bind_param("s", $driver_id);
                         $stmt4->execute();
                         $stmt4->close();
                         }
-
-
                     }
 
                     if ($new_status == -1){
-                        //echo "\nENTERING IF new_status= -1\n";
+               
                         $stmt1 = $this->conn->prepare("UPDATE users SET visibility_as_passenger = 1 WHERE employee_id = ? ");
                         $stmt1->bind_param("s", $passenger_id);
                         $stmt1->execute();
                         $stmt1->close();
-
-                        //echo "\nthis ran (pass =1)\n";
-
+                     
                         $stmt2 = $this->conn->prepare("UPDATE users SET number_of_seats = number_of_seats + 1 AND visibility_as_driver = 1 WHERE employee_id = ? AND number_of_seats < 4");
                         $stmt2->bind_param("s", $driver_id);
                         $stmt2->execute();
                         $stmt2->close();
-                        //echo "\nthis ran (driver =1)\n";
                     }
 
                     $stmt->close();
-                    //print_r($check);
                     return true;
                  }
             else
@@ -743,9 +677,7 @@ class DB_Functions {
 
             }
 
-
             else{
-
                 //STATE MACHINE CHECK::: Since request has not be accepted, it cannot be completed!!
                 return false;
             }   
@@ -755,9 +687,6 @@ class DB_Functions {
             //No request found corresponding to given driver and passenger
             return false;
         }
-
-
-        
     }
 
     public function fetchFromRequest($driver_id, $passenger_id)
@@ -772,7 +701,6 @@ class DB_Functions {
          }
          else
             return false;
-        
     }
 
     public function fetchFromUsersAccessType($employee_id)
@@ -809,12 +737,10 @@ class DB_Functions {
         {
             $result = $stmt->get_result()->fetch_all();
             $stmt->close();
-            // echo "\nHEY THIS IS RESULT\n";
             //print_r($result);
 
             foreach ($result as $value) {
-                // echo "\nHEY THIS IS each value\n";
-                // print_r($value[1]);
+              
                  $route_array = explode(',', $value[1]);
                 print_r($route_array);
                  foreach ($route_array as $pass_id) {
@@ -844,26 +770,20 @@ class DB_Functions {
             return false;
     }
 
-
     public function getDriverIdFromRoutesTable($passenger_id){
         $stmt = $this->conn->prepare("SELECT driver_id, route FROM route");
         if($stmt->execute()){
             $result = $stmt->get_result()->fetch_all();
             $stmt->close();
-            // echo "\nHEY THIS IS RESULT\n";
             //print_r($result);
 
             foreach ($result as $value) {
-                // echo "\nHEY THIS IS each value\n";
                 // print_r($value[1]);
                  $route_array = explode(',', $value[1]);
                 //print_r($route_array);
                  foreach ($route_array as $pass_id) {
-                    // echo("\nThis is each pass_id\n");
                     //print_r($pass_id);
                      if($pass_id === $passenger_id){
-                  //echo "\nTHE MATCHING PASSENGER ID \n".$pass_id;
-                        //$flag = 1;
                         return $value[0];
                         break;
                      }
@@ -874,8 +794,6 @@ class DB_Functions {
             return false;
         }
     }
-
-
 }
  
 ?>
