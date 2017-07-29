@@ -3,8 +3,8 @@
 require_once 'include/DB_Functions.php';
 
 $curl = curl_init();
-
 $db = new DB_Functions();
+
 $response = array("error" => FALSE);
  
 // json response array 
@@ -21,25 +21,19 @@ if (isset($_POST['employee_id'])) {
     if($result){
         for ($i=0; $i<count($result); $i++)
         {
-
             //DETAILS OF PASSENGERS
-
             $response['response'][$i] = array("employee_id"=>$result[$i]['employee_id'],"latitude"=>$result[$i]['latitude'], "longitude"=>$result[$i]['longitude']);
-
             $waypoints .= $result[$i]['latitude'].",".$result[$i]['longitude']."|";
         }
 
-
     // echo("\n DETAILS OF PASSENGERS\n\n");
-
     // print_r($response);
 
-
     $parameters = $str_origin."&".$str_destination."&".$waypoints;
-
         //echo $parameters;
-
     //$output = "json";
+    
+     //CALLING MAPS API FOR WAYPOINTS OPTIMIZATION
     $url = "https://maps.googleapis.com/maps/api/directions/json?".$parameters;
     //print_r($url);
     curl_setopt($curl, CURLOPT_URL, $url);
@@ -56,20 +50,16 @@ if (isset($_POST['employee_id'])) {
 
     //echo("\n ORDERED ARRAY FOR ROUTE\n\n");
     for ($i=0; $i<count($waypoints_order); $i++){
-
         $string_route .= $response['response'][$waypoints_order[$i]]['employee_id'].",";
-
     }
 
     $string_route .= "shopclues";
     //echo ($string_route);
 
     //SAVING OPTIMIZED ROUTE (EMPLOYEE IDS)
-
     $success = $db->storeInRouteTable($employee_id, $string_route, $driver_details['latitude'], $driver_details['longitude']);
 
     if($success){
-
         $response["response"] = TRUE;
         //echo json_encode($response);
     }
