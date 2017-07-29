@@ -12,17 +12,14 @@ if (isset($_POST['driver_id']) && isset($_POST['passenger_id'])) {
     $driver_id= $_POST['driver_id'];
     $passenger_id = $_POST['passenger_id'];
 
- 
-    // check if user is already existed with the same email
     if ($db->updateStatus($driver_id, $passenger_id, 2)) {
-        // user already existed
-        $response["response"] = TRUE;
-        
-        echo json_encode($response);
+     //DB updated   
+     $response["response"] = TRUE;  
+     echo json_encode($response);
     } 
 
     else {
-            // user failed to store
+            // Error in updation
             $response["error"] = TRUE;
             $response["error_msg"] = "Updation Unsuccessful!";
             echo json_encode($response);
